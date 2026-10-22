@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. System</title>
+    <style>
+        :root {
+            --bg-color: #050b14;
+            --primary-color: #00f3ff;
+            --secondary-color: #0066ff;
+            --accent-glow: rgba(0, 243, 255, 0.4);
+            --hud-bg: rgba(5, 11, 20, 0.85);
+            --hud-border: rgba(0, 243, 255, 0.3);
+            --text-color: #e0f7fc;
+            --font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body.hulkbuster {
+            --primary-color: #ffcc00;
+            --secondary-color: #ff3300;
+            --accent-glow: rgba(255, 204, 0, 0.4);
+            --hud-border: rgba(255, 204, 0, 0.4);
+            --text-color: #fff8e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            transition: background-color 1s ease;
+        }
+
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .search-mode .main-container {
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+        /* Arc Reactor Core UI */
+        .core-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            cursor: pointer;
+        }
+
+        .search-mode .core-wrapper {
+            transform: scale(0.4);
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .outer-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed var(--primary-color);
+            box-shadow: 0 0 20px var(--accent-glow);
+            animation: rotateCW 20s linear infinite;
+        }
+
+        .inner-ring {
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            animation: rotateCCW 10s linear infinite;
+        }
+
+        .core-glow {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-color) 0%, var(--secondary-color) 70%, transparent 100%);
+            box-shadow: 0 0 40px var(--primary-color);
+            transition: transform 0.1s ease;
+        }
+
+        @keyframes rotateCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotateCCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+
+        /* Speech Indicator / Status */
+        .status-box {
+            margin-top: 30px;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .search-mode .status-box {
+            position: absolute;
+            top: 140px;
+            left: 30px;
+            text-align: left;
+        }
+
+        .status-title {
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        /* Search Main View & Right Dashboard Layout */
+        .search-center-panel {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+            width: 45%;
+            background: var(--hud-bg);
+            border: 1px solid var(--hud-border);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-right-panel {
+            display: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            height: calc(100vh - 100px);
+            background: var(--hud-bg);
+            border: 1px solid var(--hud-border);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-mode .search-center-panel,
+        .search-mode .dashboard-right-panel {
+            display: block;
+        }
+
+        /* Commands Bar */
+        .command-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            display: none;
+            z-index: 20;
+        }
+
+        .command-bar.visible {
+            display: flex;
+        }
+
+        .command-input {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--primary-color);
+            border-radius: 20px;
+            color: var(--primary-color);
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* Admin / Owner Panels */
+        .role-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px
